@@ -54,4 +54,70 @@ public class UserDAO {
     private int generateId() {
         return (int)(Math.random() * 10);
     }
+
+    /**
+     * Methods exemple to get data lazily
+     *
+     * public int getUsersSize (String query) {
+     *      int size = 0;
+     *      PreparedStatement stmt = null;
+     * 		ResultSet rs;
+     * 		try {
+     *
+     * 		    stmt = con.prepareStatement(query);
+     * 		    rs = stmt.executeQuery();
+     * 		    if (rs != null) {
+     * 		        rs.last();
+     * 		        size = rs.getRow();
+     * 		    }
+     * 		    stmt.close();
+     *      } catch (SQLException e) {
+     * 			e.printStackTrace();
+     *      } finally {
+     * 			try {
+     * 		    	stmt.close();
+     *          } catch (SQLException e) {
+     *              e.printStackTrace();
+     *          }
+     *      }
+     * 		return size;
+     * }
+     *
+     * public Paginate<User> getUsers(int perPage, int page){
+     * 		ArrayList<User> users = new ArrayList<>();
+     * 	    String query = "SELECT * FROM users";
+     * 	    int usersSize = getUsersSize(query);
+     *
+     * 		PreparedStatement stmt = null;
+     * 		ResultSet rs;
+     * 		try {
+     * 	        query = query + " LIMIT ?, ?";
+     * 	        int offset = (page - 1) * perPage;
+     *
+     * 		    stmt = con.prepareStatement(query);
+     * 		    stmt.setInt(1, offset);
+     * 		    stmt.setInt(2, perPage);
+     * 		    rs = stmt.executeQuery();
+     * 		    while (rs.next()) {
+     * 			    users.add(new User(
+     * 			            rs.getInt("id"),
+     * 			            rs.getString("name"),
+     * 			            rs.getString("phone"),
+     * 			            rs.getString("status")
+     * 			        )
+     * 			     );
+     *          }
+     * 		    stmt.close();
+     *      } catch (SQLException e) {
+     * 			e.printStackTrace();
+     *      } finally {
+     * 			try {
+     * 		    	stmt.close();
+     *          } catch (SQLException e) {
+     *              e.printStackTrace();
+     *          }
+     *      }
+     * 		return new Paginate<>(usersSize, page, perPage, users);
+     * 	}
+     */
 }
