@@ -6,8 +6,6 @@ public class User {
     private String phone;
     private String status;
 
-    public User () { }
-
     public User (int id, String name, String phone, String status) {
         this.id = id;
         this.name = name;

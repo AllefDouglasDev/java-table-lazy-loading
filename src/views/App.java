@@ -7,14 +7,12 @@ import models.User;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 
 public class App extends JFrame {
 
-    private static final int WIDTH = 300;
-    private static final int HEIGHT = 300;
-    private static final int PER_PAGE = 28;
+    private static final int WINDOW_WIDTH = 510;
+    private static final int WINDOW_HEIGHT = 500;
+    private static final int PER_PAGE = 30;
     private JPanel panelBody;
 
     private JScrollPane scrollPane;
@@ -29,7 +27,7 @@ public class App extends JFrame {
     }
 
     App() {
-        setSize(WIDTH * 3, HEIGHT * 2);
+        setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(null);
@@ -41,7 +39,7 @@ public class App extends JFrame {
 
     private void init() {
         panelBody = new JPanel();
-        panelBody.setBounds(0, 0, WIDTH*2, HEIGHT*2);
+        panelBody.setBounds(0, 0, 500, 450);
         add(panelBody);
 
         loadUsers();
@@ -51,20 +49,17 @@ public class App extends JFrame {
 
     private void createTable() {
         scrollPane = new JScrollPane();
-        scrollPane.setBounds(0, 0, WIDTH, HEIGHT);
+        scrollPane.setBounds(0, 0, 300, 300);
         scrollPane.setBackground(Color.WHITE);
         panelBody.add(scrollPane);
 
-        scrollPane.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener(){
-            @Override
-            public void adjustmentValueChanged(AdjustmentEvent e) {
-                JScrollBar scrollBar = (JScrollBar) e.getAdjustable();
-                int extent = scrollBar.getModel().getExtent();
-                int maximum = scrollBar.getModel().getMaximum();
-                int limitBeforeTouch = 50;
-                if(extent + e.getValue() >= maximum - limitBeforeTouch){
-                    loadMore();
-                }
+        scrollPane.getVerticalScrollBar().addAdjustmentListener((e) -> {
+            JScrollBar scrollBar = (JScrollBar) e.getAdjustable();
+            int extent = scrollBar.getModel().getExtent();
+            int maximum = scrollBar.getModel().getMaximum();
+            int limitBeforeTouch = 50;
+            if(extent + e.getValue() >= maximum - limitBeforeTouch){
+                loadMore();
             }
         });
 
@@ -94,12 +89,12 @@ public class App extends JFrame {
         defaultTableModel.addColumn("Status");
 
         paginateUsers.getData().forEach(user ->
-                defaultTableModel.addRow(new String[]{
-                        String.valueOf(user.getId()),
-                        user.getName(),
-                        user.getPhone(),
-                        user.getStatus()
-                })
+            defaultTableModel.addRow(new String[]{
+                String.valueOf(user.getId()),
+                user.getName(),
+                user.getPhone(),
+                user.getStatus()
+            })
         );
 
         table.setModel(defaultTableModel);
@@ -110,15 +105,13 @@ public class App extends JFrame {
         paginateUsers = userController.getUsers(PER_PAGE, initialPage);
     }
 
-
     private void loadMore() {
         int newPage = paginateUsers.getPage() + 1;
         if (paginateUsers.getTotalPages() >= newPage) {
-            Paginate<User> newUsers = userController.getUsers(paginateUsers.getPerPage(), paginateUsers.getPage() + 1);
-
-            System.out.println("Users founded -> " + newUsers.getData().size());
+            paginateUsers.setPage(newPage);
+            Paginate<User> newUsers = userController.getUsers(PER_PAGE, newPage);
             paginateUsers.getData().addAll(newUsers.getData());
-            paginateUsers.setPage(newUsers.getPage());
+            System.out.println("Users founded -> " + newUsers.getData().size());
             inflateTable();
         }
     }
