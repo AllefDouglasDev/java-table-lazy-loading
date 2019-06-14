@@ -2,7 +2,7 @@
 
 This project was maded in IntelliJ IDEA
 
-That is project to show you how can ypu search for data and populate in a JTable lazily.
+This is a project to show you how can ypu search for data and populate in a JTable lazily.
 
 The JScrollPane has a listener then will call when the user scrolls the JTable.
 
