@@ -1,6 +1,6 @@
 # Introduction
 
-This project was maded in IntelliJ IDEA
+This project was made in IntelliJ IDEA
 
 This is a project to show you how can you search for data and populate in a JTable lazily.
 
