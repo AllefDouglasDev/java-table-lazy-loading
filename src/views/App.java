@@ -14,12 +14,12 @@ public class App extends JFrame {
 
     private static final int WIDTH = 300;
     private static final int HEIGHT = 300;
-    private static final int PER_PAGE = 20;
+    private static final int PER_PAGE = 28;
     private JPanel panelBody;
 
     private JScrollPane scrollPane;
     private JTable table;
-    private DefaultTableModel modelo;
+    private DefaultTableModel defaultTableModel;
 
     UserController userController = new UserController();
     private Paginate<User> paginateUsers;
@@ -86,15 +86,15 @@ public class App extends JFrame {
     }
 
     private void inflateTable() {
-        modelo = new DefaultTableModel();
+        defaultTableModel = new DefaultTableModel();
 
-        modelo.addColumn("id");
-        modelo.addColumn("Name");
-        modelo.addColumn("Phone");
-        modelo.addColumn("Status");
+        defaultTableModel.addColumn("id");
+        defaultTableModel.addColumn("Name");
+        defaultTableModel.addColumn("Phone");
+        defaultTableModel.addColumn("Status");
 
         paginateUsers.getData().forEach(user ->
-                modelo.addRow(new String[]{
+                defaultTableModel.addRow(new String[]{
                         String.valueOf(user.getId()),
                         user.getName(),
                         user.getPhone(),
@@ -102,7 +102,7 @@ public class App extends JFrame {
                 })
         );
 
-        table.setModel(modelo);
+        table.setModel(defaultTableModel);
     }
 
     private void loadUsers() {
@@ -115,9 +115,10 @@ public class App extends JFrame {
         int newPage = paginateUsers.getPage() + 1;
         if (paginateUsers.getTotalPages() >= newPage) {
             Paginate<User> newUsers = userController.getUsers(paginateUsers.getPerPage(), paginateUsers.getPage() + 1);
+
+            System.out.println("Users founded -> " + newUsers.getData().size());
             paginateUsers.getData().addAll(newUsers.getData());
             paginateUsers.setPage(newUsers.getPage());
-            paginateUsers.setTotalPages(newUsers.getTotalPages());
             inflateTable();
         }
     }

@@ -12,20 +12,22 @@ public class UserDAO {
     }
 
     public Paginate<User> getUsers(int perPage, int page) {
-        int usersSize = getUsersSize();
-        int totalPages = (int) Math.ceil(usersSize / perPage);
         ArrayList<User> users = new ArrayList<>();
-        for (int i = 0; i < 30; i++) {
-            users.add(new User(
-                            generateId(),
-                            "Pessoa " + generateId(),
-                            "Meu phone " + generateId(),
-                            generateId() > 5 ? "Open" : "Close"
+        int usersSize = getUsersSize();
+        int sizeToLoad = Paginate.calculateSizeToLoad(perPage, page, usersSize);
+        if (sizeToLoad > 0) {
+            for (int i = 0; i < sizeToLoad; i++) {
+                users.add(new User(
+                        generateId(),
+                        "Pessoa " + generateId(),
+                        "Meu phone " + generateId(),
+                        generateId() > 5 ? "Open" : "Close"
                     )
-            );
+                );
+            }
         }
 
-        return new Paginate<>(totalPages, page, perPage, users);
+        return new Paginate<>(usersSize, page, perPage, users);
     }
 
     private int generateId() {
