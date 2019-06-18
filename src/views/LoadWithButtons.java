@@ -18,6 +18,7 @@ public class LoadWithButtons extends JFrame {
 
     private static final int WINDOW_WIDTH = 510;
     private static final int WINDOW_HEIGHT = 550;
+    private static final int INITIAL_PAGE = 1;
     private static final int INITIAL_PER_PAGE = 12;
 
     private JPanel panelBody;
@@ -67,8 +68,7 @@ public class LoadWithButtons extends JFrame {
     }
 
     private void loadUsers () {
-        int initialPage = 1;
-        paginateUsers = userController.getUsers(INITIAL_PER_PAGE, initialPage);
+        paginateUsers = userController.getUsers(INITIAL_PER_PAGE, INITIAL_PAGE);
     }
 
     private void createTable () {
@@ -127,7 +127,7 @@ public class LoadWithButtons extends JFrame {
     public ActionListener onNext(JLabel currentPage) {
         return e -> {
             int newPage = paginateUsers.getPage() + 1;
-            if (paginateUsers.getTotalPages() >= newPage) {
+            if (newPage <= paginateUsers.getTotalPages()) {
                 currentPage.setText(String.valueOf(newPage));
                 loadMore(newPage);
             }
@@ -137,7 +137,7 @@ public class LoadWithButtons extends JFrame {
     public ActionListener onPrev(JLabel currentPage) {
         return e -> {
             int newPage = paginateUsers.getPage() - 1;
-            if (newPage > 0) {
+            if (newPage >= INITIAL_PAGE) {
                 currentPage.setText(String.valueOf(newPage));
                 loadMore(newPage);
             }
@@ -145,11 +145,9 @@ public class LoadWithButtons extends JFrame {
     }
 
     private void loadMore(int newPage) {
-        if (newPage >= 0 && paginateUsers.getTotalPages() >= newPage) {
-            paginateUsers.setPage(newPage);
-            Paginate<User> newUsers = userController.getUsers(paginateUsers.getPerPage(), newPage);
-            paginateUsers.setData(newUsers.getData());
-            inflateUsersInTable();
-        }
+        paginateUsers.setPage(newPage);
+        Paginate<User> newUsers = userController.getUsers(paginateUsers.getPerPage(), newPage);
+        paginateUsers.setData(newUsers.getData());
+        inflateUsersInTable();
     }
 }
