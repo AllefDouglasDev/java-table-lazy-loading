@@ -11,8 +11,8 @@ public class UsersTableSeeder implements Seeder {
 	public void run() {
 		UserController cc = new UserController();
 
-		for (int i = 0; i < 320; i++)
-			cc.store(new User(i+1, randomString(), randomString(), "close"));
+		for (int i = 1; i <= 320; i++)
+			cc.store(new User(i, randomString(), randomString(), "enable"));
 	}
 
 	private String randomString() {

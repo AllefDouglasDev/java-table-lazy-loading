@@ -10,34 +10,27 @@ import models.User;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 
-public class App extends JFrame {
+public class LoadOnScroll extends JFrame {
 
     private static final int WINDOW_WIDTH = 510;
     private static final int WINDOW_HEIGHT = 500;
     private static final int PER_PAGE = 12;
-    private JPanel panelBody;
 
+    private JPanel panelBody;
     private JScrollPane scrollPane;
     private JTable table;
     private DefaultTableModel defaultTableModel;
 
-    UserController userController = new UserController();
+    private UserController userController;
     private Paginate<User> paginateUsers;
 
     public static void main(String[] args) {
-        DBConnection.getConnection();
-
-        if (DBConnection.hasBeenRecreated) {
-            MigrationBuilder.migrate();
-            SeederBuilder.seed();
-        }
-        new App();
+        new LoadOnScroll();
     }
 
-    App() {
+    public LoadOnScroll () {
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -49,39 +42,48 @@ public class App extends JFrame {
     }
 
     private void init() {
+        normalizeDatabase();
+        userController = new UserController();
+
         panelBody = new JPanel();
         panelBody.setBounds(0, 0, 500, 450);
         add(panelBody);
 
         loadUsers();
         createTable();
-        inflateTable();
+        inflateUsersInTable();
     }
 
-    private void createTable() {
+    public void normalizeDatabase() {
+        DBConnection.getConnection();
+
+        if (DBConnection.hasBeenRecreated) {
+            MigrationBuilder.migrate();
+            SeederBuilder.seed();
+        }
+    }
+
+    private void loadUsers () {
+        int initialPage = 1;
+        paginateUsers = userController.getUsers(PER_PAGE, initialPage);
+    }
+
+    private void createTable () {
         scrollPane = new JScrollPane();
         scrollPane.setBounds(0, 0, 300, 300);
         scrollPane.setBackground(Color.WHITE);
         scrollPane.getVerticalScrollBar().addAdjustmentListener(onUserScrolls());
-
         panelBody.add(scrollPane);
 
-        table = new JTable(){
-            private static final long serialVersionUID = 1L;
-
-            public boolean isCellEditable(int rowIndex, int vColIndex) {
-                return false;
-            }
-        };
+        table = new JTable();
         table.setModel(new DefaultTableModel(
                 new Object[][] { { null }, },
                 new String[] { "New column" }
         ));
-        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         scrollPane.setViewportView(table);
     }
 
-    private void inflateTable() {
+    private void inflateUsersInTable () {
         defaultTableModel = new DefaultTableModel();
 
         defaultTableModel.addColumn("id");
@@ -101,9 +103,16 @@ public class App extends JFrame {
         table.setModel(defaultTableModel);
     }
 
-    private void loadUsers() {
-        int initialPage = 1;
-        paginateUsers = userController.getUsers(PER_PAGE, initialPage);
+    private AdjustmentListener onUserScrolls() {
+        return (e) -> {
+            JScrollBar scrollBar = (JScrollBar) e.getAdjustable();
+            int extent = scrollBar.getModel().getExtent();
+            int maximum = scrollBar.getModel().getMaximum();
+            int limitBeforeTouch = 50;
+            if (extent + e.getValue() >= maximum - limitBeforeTouch) {
+                loadMore();
+            }
+        };
     }
 
     private void loadMore() {
@@ -113,19 +122,7 @@ public class App extends JFrame {
             Paginate<User> newUsers = userController.getUsers(PER_PAGE, newPage);
             paginateUsers.getData().addAll(newUsers.getData());
             System.out.println("Users founded -> " + newUsers.getData().size());
-            inflateTable();
+            inflateUsersInTable();
         }
-    }
-
-    private AdjustmentListener onUserScrolls() {
-        return (e) -> {
-            JScrollBar scrollBar = (JScrollBar) e.getAdjustable();
-            int extent = scrollBar.getModel().getExtent();
-            int maximum = scrollBar.getModel().getMaximum();
-            int limitBeforeTouch = 50;
-            if(extent + e.getValue() >= maximum - limitBeforeTouch){
-                loadMore();
-            }
-        };
     }
 }
