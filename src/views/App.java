@@ -1,18 +1,23 @@
 package views;
 
 import controllers.UserController;
+import database.DBConnection;
+import database.migrations.MigrationBuilder;
+import database.seeds.SeederBuilder;
 import models.Paginate;
 import models.User;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 
 public class App extends JFrame {
 
     private static final int WINDOW_WIDTH = 510;
     private static final int WINDOW_HEIGHT = 500;
-    private static final int PER_PAGE = 30;
+    private static final int PER_PAGE = 12;
     private JPanel panelBody;
 
     private JScrollPane scrollPane;
@@ -23,6 +28,12 @@ public class App extends JFrame {
     private Paginate<User> paginateUsers;
 
     public static void main(String[] args) {
+        DBConnection.getConnection();
+
+        if (DBConnection.hasBeenRecreated) {
+            MigrationBuilder.migrate();
+            SeederBuilder.seed();
+        }
         new App();
     }
 
@@ -51,17 +62,9 @@ public class App extends JFrame {
         scrollPane = new JScrollPane();
         scrollPane.setBounds(0, 0, 300, 300);
         scrollPane.setBackground(Color.WHITE);
-        panelBody.add(scrollPane);
+        scrollPane.getVerticalScrollBar().addAdjustmentListener(onUserScrolls());
 
-        scrollPane.getVerticalScrollBar().addAdjustmentListener((e) -> {
-            JScrollBar scrollBar = (JScrollBar) e.getAdjustable();
-            int extent = scrollBar.getModel().getExtent();
-            int maximum = scrollBar.getModel().getMaximum();
-            int limitBeforeTouch = 50;
-            if(extent + e.getValue() >= maximum - limitBeforeTouch){
-                loadMore();
-            }
-        });
+        panelBody.add(scrollPane);
 
         table = new JTable(){
             private static final long serialVersionUID = 1L;
@@ -70,14 +73,12 @@ public class App extends JFrame {
                 return false;
             }
         };
-
         table.setModel(new DefaultTableModel(
                 new Object[][] { { null }, },
                 new String[] { "New column" }
         ));
-
-        scrollPane.setViewportView(table);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        scrollPane.setViewportView(table);
     }
 
     private void inflateTable() {
@@ -114,5 +115,17 @@ public class App extends JFrame {
             System.out.println("Users founded -> " + newUsers.getData().size());
             inflateTable();
         }
+    }
+
+    private AdjustmentListener onUserScrolls() {
+        return (e) -> {
+            JScrollBar scrollBar = (JScrollBar) e.getAdjustable();
+            int extent = scrollBar.getModel().getExtent();
+            int maximum = scrollBar.getModel().getMaximum();
+            int limitBeforeTouch = 50;
+            if(extent + e.getValue() >= maximum - limitBeforeTouch){
+                loadMore();
+            }
+        };
     }
 }
